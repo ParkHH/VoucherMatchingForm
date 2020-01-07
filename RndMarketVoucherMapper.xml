@@ -1,0 +1,429 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="rndmarket.voucher.RndMarketVoucherMapper">
+
+<!-- 사업자 등록번호 중복체크 (작성완료건) -->
+<select id="selectBusinessNum" parameterType="String" resultType="Integer">
+	SELECT COUNT(*) AS overlap_count FROM TB_VAM_APPL WHERE BIZ_REG_NO=#{BIZ_REG_NO} AND DOC_STATUS='03'
+</select>
+
+
+<!-- 신청번호 제출완료 중복체크 (완료건) -->
+<select id="selectApplyNum" parameterType="String" resultType="Integer">
+	SELECT COUNT(*) AS overlap_count FROM TB_VAM_APPL WHERE APP_NO=#{APP_NO} AND DOC_STATUS='03'
+</select>
+
+
+<!-- 신청일련번호 중복체크 (작성중건) -->
+<select id="selectBusinessNumWhile" parameterType="String" resultType="Integer">
+	SELECT COUNT(*) AS overlap_count FROM TB_VAM_APPL WHERE APP_NO=#{APP_NO} AND (DOC_STATUS='01' OR DOC_STATUS='02' OR DOC_STATUS='06')
+</select>
+
+
+<!-- 매칭지원신청 이력 조회 step 01 -->
+<select id="selectApplyHistoryStep01" parameterType="String" resultType="java.util.LinkedHashMap">
+	SELECT 	APP_NO,
+				ENTP_NAME,	
+				BIZ_REG_NO,
+				COR_NO,
+				CEO_NAME,
+				COR_PHONE,
+				POST_NO,
+				BASE_ADDR,
+				DTL_ADDR,
+				ENTP_DATE,
+				ENTP_INDUTY,
+				EMP_CNT,
+				SALES_PRICE,
+				MAIN_PRODUCT,
+				CHRG_NAME,
+				CHRG_SN,
+				CHRG_DEPT,
+				CHRG_DUTY	,
+				CHRG_CELL_PHONE,
+				CHRG_TEL_NO,
+				CHRG_MAIL_ADDR,
+				DOC_STEP,
+				DOC_STATUS
+	FROM 	TB_VAM_APPL 
+	WHERE 	APP_NO = #{APP_NO}
+</select>
+
+
+
+<!-- 매칭지원신청 이력 조회 step 02 -->
+<select id="selectApplyHistoryStep02" parameterType="String" resultType="java.util.LinkedHashMap">
+	SELECT 	APP_NO,
+				PJT_NAME,
+				TOT_GVRN_CNBN,
+				PART_INST_NAME	,
+				VOUCH_NEEDS,
+				TECH_NEEDS,
+				TECH_DESC,
+				TECH_PLAN,
+				REQ_ITEMS,
+				ATTACH_FILE_ID,
+				INFO_AGREE_YN,
+				DOC_STEP,
+				DOC_STATUS,
+				ATTACH_FILE_LINK
+	FROM 	TB_VAM_APPL 
+	WHERE 	APP_NO = #{APP_NO}
+</select>
+
+
+
+<!-- 매칭지원신청 이력 조회 step 03 -->
+<select id="selectApplyHistoryStep03" parameterType="String" resultType="java.util.LinkedHashMap">
+	SELECT 	APP_NO,
+				ENTP_NAME,	
+				BIZ_REG_NO,
+				COR_NO,
+				CEO_NAME,
+				COR_PHONE,
+				POST_NO,
+				BASE_ADDR,
+				DTL_ADDR,
+				ENTP_DATE,
+				ENTP_INDUTY,
+				EMP_CNT,
+				SALES_PRICE,
+				MAIN_PRODUCT,
+				CHRG_NAME,
+				CHRG_SN,
+				CHRG_DEPT,
+				CHRG_DUTY	,
+				CHRG_CELL_PHONE,
+				CHRG_TEL_NO,
+				CHRG_MAIL_ADDR,
+				PJT_NAME,
+				TOT_GVRN_CNBN,
+				PART_INST_NAME	,
+				VOUCH_NEEDS,
+				TECH_NEEDS,
+				TECH_DESC,
+				TECH_PLAN,
+				REQ_ITEMS,
+				ATTACH_FILE_ID,
+				INFO_AGREE_YN,
+				DOC_PASS,
+				SEND_MAIL_YN,
+				DOC_STEP,
+				DOC_STATUS
+	FROM 	TB_VAM_APPL 
+	WHERE 	APP_NO = #{APP_NO}
+		<if test="BIZ_REG_NO != null">
+	        <![CDATA[ 					
+			AND BIZ_REG_NO =#{BIZ_REG_NO}
+			 ]]>
+		</if>		
+</select>
+
+
+
+
+
+<!-- 바우처 마지막 일련번호 가져오기 -->
+<select id="selectLastVoucherNum" resultType="String">
+	SELECT NVL(MAX(APP_NO), 0) AS APP_NO 
+	FROM TB_VAM_APPL 
+	WHERE TO_CHAR(CRE_DATETIME) = TO_CHAR(SYSDATE)
+</select>
+
+
+
+<!-- step01 정보 저장하기 (신규작성시에)-->
+<insert id="insertStep1">
+	INSERT INTO TB_VAM_APPL(
+		APP_NO,
+		ENTP_NAME, 					
+		BIZ_REG_NO, 		 		
+		COR_NO, 				
+		CEO_NAME,					
+		COR_PHONE, 					
+		POST_NO, 						
+		BASE_ADDR, 					
+		DTL_ADDR, 					
+		ENTP_DATE, 					
+		ENTP_INDUTY, 				
+		EMP_CNT,						
+		SALES_PRICE, 				
+		MAIN_PRODUCT, 			
+		CHRG_NAME, 					
+		CHRG_SN, 						
+		CHRG_DEPT, 					
+		CHRG_DUTY, 					
+		CHRG_CELL_PHONE, 		
+		CHRG_TEL_NO,				
+		CHRG_MAIL_ADDR,
+		PJT_NAME,
+		TOT_GVRN_CNBN,
+		PART_INST_NAME,
+		VOUCH_NEEDS,
+		TECH_NEEDS,
+		TECH_DESC,
+		TECH_PLAN,
+		REQ_ITEMS,
+		ATTACH_FILE_ID,
+		INFO_AGREE_YN,
+		DOC_PASS,
+		CRE_USER,
+		CRE_DATETIME,
+		SEND_MAIL_YN, 	
+		DOC_STEP,
+		DOC_STATUS
+	) VALUES(		
+		#{APP_NO},
+		#{ENTP_NAME}, 					
+		#{BIZ_REG_NO}, 		
+		#{COR_NO}, 				
+		#{CEO_NAME}, 					
+		#{COR_PHONE}, 					
+		#{POST_NO}, 						
+		#{BASE_ADDR}, 					
+		#{DTL_ADDR},					
+		#{ENTP_DATE},
+		#{ENTP_INDUTY}, 				
+		#{EMP_CNT}, 						
+		#{SALES_PRICE}, 				
+		#{MAIN_PRODUCT}, 			
+		#{CHRG_NAME}, 					
+		#{CHRG_SN}, 						
+		#{CHRG_DEPT}, 					
+		#{CHRG_DUTY}, 					
+		#{CHRG_CELL_PHONE}, 		
+		#{CHRG_TEL_NO},				
+		#{CHRG_MAIL_ADDR},
+		' ',
+		0,
+		' ',
+		' ',
+		' ',
+		' ',
+		' ',
+		' ',
+		' ',
+		' ',
+		' ',
+		#{CRE_USER},
+		CURRENT_DATE,
+		'N', 	
+		#{DOC_STEP},
+		'01'
+	)
+</insert>
+
+<!-- step1 기작성건 수정 -->
+<update id="updateStep1">
+	UPDATE TB_VAM_APPL 
+		SET 	ENTP_NAME =#{ENTP_NAME}, 					
+				BIZ_REG_NO = #{BIZ_REG_NO}, 		
+				COR_NO = #{COR_NO}, 				
+				CEO_NAME =#{CEO_NAME},
+				<if test="COR_PHONE != null">
+			        <![CDATA[ 					
+					COR_PHONE =#{COR_PHONE}, 
+					 ]]>
+				</if>					
+				POST_NO =#{POST_NO}, 						
+				BASE_ADDR =#{BASE_ADDR}, 					
+				DTL_ADDR =#{DTL_ADDR},
+				<if test="ENTP_DATE != null">
+			        <![CDATA[ 					
+					ENTP_DATE =#{ENTP_DATE},
+				   ]]>
+			    </if>	
+			    <if test="ENTP_INDUTY != null">
+			        <![CDATA[  					
+					ENTP_INDUTY =#{ENTP_INDUTY}, 	
+				  ]]>
+			    </if>				
+				EMP_CNT =#{EMP_CNT},						
+				SALES_PRICE =#{SALES_PRICE}, 				
+				<if test="MAIN_PRODUCT != null">
+			        <![CDATA[
+					MAIN_PRODUCT =#{MAIN_PRODUCT}, 	
+				   ]]>
+			    </if>			
+				CHRG_NAME =#{CHRG_NAME}, 					
+				CHRG_SN =#{CHRG_SN}, 						
+				CHRG_DEPT =#{CHRG_DEPT}, 					
+				CHRG_DUTY =#{CHRG_DUTY}, 					
+				CHRG_CELL_PHONE =#{CHRG_CELL_PHONE}, 		
+				CHRG_TEL_NO =#{CHRG_TEL_NO},				
+				CHRG_MAIL_ADDR= #{CHRG_MAIL_ADDR},
+				DOC_STEP =#{DOC_STEP},
+				DOC_STATUS =#{DOC_STEP},
+				UPD_USER =#{UPD_USER},						
+				UPD_DATETIME =CURRENT_DATE
+	WHERE APP_NO = #{APP_NO} 	
+</update>
+
+
+
+<!-- step2 기작성건 수정 -->
+<update id="updateStep2">
+	UPDATE TB_VAM_APPL 
+		SET 	PJT_NAME =#{PJT_NAME}, 					
+				<if test="TOT_GVRN_CNBN != null">
+			        <![CDATA[	
+					TOT_GVRN_CNBN = #{TOT_GVRN_CNBN}, 
+					]]>
+			    </if>		
+				<if test="PART_INST_NAME != null">
+			        <![CDATA[	
+					PART_INST_NAME = #{PART_INST_NAME}, 
+					]]>
+			    </if>					
+				VOUCH_NEEDS =#{VOUCH_NEEDS},					
+				TECH_NEEDS =#{TECH_NEEDS}, 					
+				TECH_DESC =#{TECH_DESC}, 						
+				TECH_PLAN =#{TECH_PLAN}, 	
+				<if test="REQ_ITEMS != null">
+			        <![CDATA[
+			        REQ_ITEMS = #{REQ_ITEMS},
+			        ]]>
+			    </if>									
+				ATTACH_FILE_ID =#{ATTACH_FILE_ID}, 					
+				INFO_AGREE_YN =#{INFO_AGREE_YN}, 				
+				DOC_STEP = #{DOC_STEP},
+				UPD_USER =#{UPD_USER},						
+				UPD_DATETIME =CURRENT_DATE			
+	WHERE APP_NO = #{APP_NO} 	
+</update>
+
+
+
+
+<!-- 암호설정 -->
+<update id="setPassword">
+	UPDATE TB_VAM_APPL 
+		SET DOC_PASS = #{DOC_PASS}
+			, DOC_STEP = #{DOC_STEP}
+			, DOC_STATUS = '02'
+		WHERE APP_NO = #{APP_NO}
+</update>
+
+
+
+
+<!-- 제출 완료 상태 변경 -->
+<update id="setSubmitStatus">
+	UPDATE TB_VAM_APPL
+		SET 	DOC_STATUS = '03'
+				, DOC_STEP = '04'
+				, SEND_MAIL_YN = 'Y'
+		WHERE APP_NO = #{APP_NO}
+</update>
+
+
+
+<!--R&D서비스 매칭지원 신청 목록 조회 -->
+  <select id="retrieveRndVchMatchingApplylist" resultType="java.util.LinkedHashMap">
+      <include refid="common.util.CommonUtilMapper.pagingPrefix" />
+      <![CDATA[
+      SELECT  	TVA.APP_NO,
+        	  	TVA.ENTP_NAME,
+           		TVA.TECH_NEEDS,
+        		TO_CHAR(TVA.CRE_DATETIME, 'yyyy-MM-dd') AS CRE_DATETIME,
+        		TVA.DOC_STEP,
+        		TVA.DOC_STATUS
+	   FROM	    TB_VAM_APPL TVA
+	   WHERE	1 = 1
+	   AND        APP_NO != 'vm0000-000'
+      ]]>
+      <if test="rndInfo.TECH_NEEDS != null and rndInfo.TECH_NEEDS != ''">
+          <![CDATA[
+          AND TVA.TECH_NEEDS LIKE '%'||UPPER(#{rndInfo.TECH_NEEDS})||'%'
+          ]]>
+      </if>
+
+      <if test="rndInfo.ENTP_NAME != null and rndInfo.ENTP_NAME != ''">
+          <![CDATA[
+          AND TVA.ENTP_NAME LIKE '%'||UPPER(#{rndInfo.ENTP_NAME})||'%'
+          ]]>
+      </if>
+
+      <if test="rndInfo.DOC_STATUS != null and rndInfo.DOC_STATUS != ''">
+          <![CDATA[
+          AND TVA.DOC_STATUS = #{rndInfo.DOC_STATUS}
+          ]]>
+      </if>
+      
+      <if test="rndInfo.APP_NO != null and rndInfo.APP_NO != ''">
+          <![CDATA[
+          AND TVA.APP_NO = #{rndInfo.APP_NO}
+          ]]>
+      </if>
+       <![CDATA[
+      ORDER BY TVA.CRE_DATETIME DESC
+      ]]>
+      <include refid="common.util.CommonUtilMapper.pagingSuffix" />
+  </select>
+  
+  <!--R&D 서비스 요청 승인 처리 -->
+  <update id="updateRndMatchingApprovList">
+      <![CDATA[
+     UPDATE "IITP_ICT_BAY"."TB_VAM_APPL" t SET t."DOC_STATUS" = #{DOC_STATUS} WHERE t."APP_NO" = #{APP_NO}
+      ]]>
+  </update>
+  
+   <!-- R&D 신청서 상세조회 --> 
+    <select id="retrieveTbVoucherDetail" resultType="java.util.LinkedHashMap">
+        <![CDATA[
+        SELECT  APP_NO,
+        		ENTP_NAME,
+        		BIZ_REG_NO,
+        		COR_NO,
+        		CEO_NAME,
+        		COR_PHONE,
+        		POST_NO,
+        		BASE_ADDR,
+        		DTL_ADDR,
+        		ENTP_DATE,
+        		ENTP_INDUTY,
+        		EMP_CNT,
+        		SALES_PRICE,
+        		MAIN_PRODUCT,
+        		CHRG_NAME,
+        		CHRG_SN,
+        		CHRG_DEPT,
+        		CHRG_DUTY,
+        		CHRG_CELL_PHONE,
+        		CHRG_TEL_NO,
+        		CHRG_MAIL_ADDR,
+        		PJT_NAME,
+        		TOT_GVRN_CNBN,
+        		PART_INST_NAME,
+        		VOUCH_NEEDS,
+        		TECH_NEEDS,
+        		TECH_DESC,
+        		TECH_PLAN,
+        		ATTACH_FILE_ID,
+        		DOC_PASS,
+        		INFO_AGREE_YN
+          FROM  TB_VAM_APPL
+		  WHERE APP_NO = #{APP_NO}
+        ]]>
+    </select>
+  
+  	<!--R&D 매칭 상세정보 비밀번호 변경 -->
+  <update id="updateRndMatchingApprovPasswd">
+      <![CDATA[
+     UPDATE "IITP_ICT_BAY"."TB_VAM_APPL" t SET t."DOC_PASS" = #{DOC_PASS} WHERE t."APP_NO" = #{APP_NO}
+      ]]>
+  </update>
+  
+  
+  
+  
+  
+  
+  <!-- 파일 업로드 정보 Insert -->
+  <update id="uploadFileInfoInsert">
+  		UPDATE TB_VAM_APPL
+  		SET ATTACH_FILE_LINK=#{ATTACH_FILE_LINK}
+  				,ATTACH_FILE_ID=#{ATTACH_FILE_ID}
+  		WHERE APP_NO = #{APP_NO}
+  </update>
+</mapper>
